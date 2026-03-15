@@ -1,0 +1,13 @@
+image_id,generator,split,class_name,y_ai,model,score_ai,pred_ai
+img_cef8ae9cc782e0b9,BigGAN,val,ai,1,SVM,0.5884752004179221,1
+img_34215c87c546742f,BigGAN,val,ai,1,SVM,0.667461416717509,1
+img_c6ceba58bb641719,BigGAN,val,nature,0,SVM,0.5951505708628217,1
+img_f5ec7a1b2a24d09a,BigGAN,val,nature,0,SVM,0.4090888916214985,0
+img_cef8ae9cc782e0b9,BigGAN,val,ai,1,MLP,0.8082842230796814,1
+img_34215c87c546742f,BigGAN,val,ai,1,MLP,0.9823651909828186,1
+img_c6ceba58bb641719,BigGAN,val,nature,0,MLP,0.8998779058456421,1
+img_f5ec7a1b2a24d09a,BigGAN,val,nature,0,MLP,0.31886380910873413,0
+img_cef8ae9cc782e0b9,BigGAN,val,ai,1,XGBoost,0.7667270302772522,1
+img_34215c87c546742f,BigGAN,val,ai,1,XGBoost,0.8008366227149963,1
+img_c6ceba58bb641719,BigGAN,val,nature,0,XGBoost,0.29851657152175903,0
+img_f5ec7a1b2a24d09a,BigGAN,val,nature,0,XGBoost,0.2417508363723755,0

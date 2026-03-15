@@ -1,0 +1,6 @@
+image_id,quality_score,label_source
+img_0001,0.91,pseudo
+img_0002,0.42,pseudo
+img_0003,0.57,pseudo
+img_0004,0.88,pseudo
+img_0005,0.49,pseudo

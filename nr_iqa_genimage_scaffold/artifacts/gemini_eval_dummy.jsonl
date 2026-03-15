@@ -1,0 +1,2 @@
+{"image_id":"img_0002","rubric_scores":{"anatomy":2,"lighting_physics":2,"object_coherence":3,"naturalness":2},"semantic_score":2.25,"rationale":"Jumlah jari tampak tidak konsisten dan arah bayangan tidak selaras.","eval_reason":"high_error_sample"}
+{"image_id":"img_0005","rubric_scores":{"anatomy":3,"lighting_physics":3,"object_coherence":2,"naturalness":3},"semantic_score":2.75,"rationale":"Komposisi menarik namun relasi objek latar kurang logis.","eval_reason":"high_uncertainty_sample"}

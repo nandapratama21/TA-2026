@@ -1,0 +1,28 @@
+project:
+  name: nr-iqa-genimage
+  task: regression
+  primary_dataset: genimage
+
+data:
+  manifest_path: data/genimage_manifest.csv
+  quality_labels_path: data/labels_quality.csv
+  image_root: /path/to/images
+
+model:
+  clip_model: ViT-B/32
+  fusion: concatenate
+  regressor_hidden: [512, 128]
+  loss: huber
+
+features:
+  fft:
+    use_phase: true
+    radial_bins: 64
+    bands: [low, mid, high]
+  clip:
+    freeze_backbone: true
+
+semantics_eval:
+  enabled: false
+  provider: gemini
+  mode: manual_subset

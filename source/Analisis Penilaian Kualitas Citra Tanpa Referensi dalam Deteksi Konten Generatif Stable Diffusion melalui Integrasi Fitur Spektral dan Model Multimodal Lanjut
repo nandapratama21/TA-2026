@@ -1,0 +1,247 @@
+Analisis Penilaian Kualitas Citra Tanpa Referensi dalam Deteksi Konten Generatif Stable Diffusion melalui Integrasi Fitur Spektral dan Model Multimodal Lanjut
+Kemunculan kecerdasan buatan generatif dalam bentuk model teks-ke-citra telah membawa perubahan radikal dalam ekosistem media digital, di mana batasan antara realitas visual dan sintesis algoritma menjadi semakin kabur. Teknologi seperti Stable Diffusion, Midjourney, dan varian GPT Image terbaru kini mampu menghasilkan karya visual dengan tingkat fotorealisme yang seringkali melampaui kemampuan deteksi mata manusia yang tidak terlatih.[1, 2] Fenomena ini tidak hanya menawarkan efisiensi kreatif yang belum pernah terjadi sebelumnya, tetapi juga memicu krisis integritas informasi yang serius, mulai dari pembuatan bukti palsu hingga manipulasi opini publik melalui media yang tampak otentik.[3, 4, 5] Dalam konteks penelitian akademik dan industri, kebutuhan akan metrik Image Quality Assessment (IQA) yang robust menjadi sangat mendesak, terutama pendekatan No-Reference (NR) atau blind IQA yang dapat beroperasi tanpa memerlukan citra referensi asli, yang dalam skenario dunia nyata hampir selalu tidak tersedia.[6, 7]
+Penelitian ini memfokuskan pada pengembangan metrik NR-IQA yang secara spesifik dirancang untuk mengevaluasi naturalness dan mendeteksi jejak sintesis dari model Stable Diffusion. Tantangan utama dalam tugas ini adalah kenyataan bahwa citra yang dihasilkan oleh kecerdasan buatan (AIGC) memiliki karakteristik statistik dan semantik yang sangat berbeda dari citra alami yang ditangkap oleh sensor kamera fisik.[8, 9, 10] Metrik tradisional yang selama ini digunakan untuk menilai kualitas citra seringkali memberikan hasil yang menyesatkan ketika dihadapkan pada konten generatif, karena mereka cenderung mengoptimalkan parameter yang berkaitan dengan kejelasan piksel tanpa memahami kebenaran struktural atau kelogisan adegan.[9] Oleh karena itu, laporan ini akan mengeksplorasi metodologi mutakhir yang menggabungkan analisis domain frekuensi dengan kekuatan penalaran visual dari model multimodal terkemuka seperti Gemini (khususnya varian Nano Banana) dan GPT Image.[11, 12, 13]
+Landasan Teknis Arsitektur Stable Diffusion dan Dampaknya pada Kualitas Citra
+Untuk mengembangkan metrik penilaian yang efektif, pemahaman mendalam mengenai mekanisme generatif Stable Diffusion sangat diperlukan. Stable Diffusion secara fundamental merupakan Latent Diffusion Model (LDM) yang bekerja dengan memisahkan fase kompresi persepsual dari fase generasi semantik.[14, 15, 16] Arsitektur ini terdiri dari tiga modul utama yang saling berkaitan: Variational Autoencoder (VAE), U-Net pendenoise, dan Text Encoder berbasis CLIP.[15, 16, 17] Proses generasi dimulai dengan kompresi citra asli ke dalam ruang laten yang jauh lebih kecil, biasanya dengan faktor reduksi 8×8 atau 64 kali lebih kecil dari ruang piksel asli.[16, 18] Di sinilah letak akar dari banyak artefak visual yang muncul; karena proses denoising dilakukan dalam resolusi rendah tersebut, detail frekuensi tinggi seringkali hilang atau terdistorsi saat citra didekode kembali ke ruang piksel.[18, 19]
+Analisis Laten vs Ruang Piksel dalam Generasi Konten
+Perbedaan mendasar antara model difusi berbasis piksel dan berbasis laten terletak pada efisiensi komputasi dan kualitas akhir. Model berbasis piksel seperti Make-A-Video melakukan manipulasi langsung pada nilai RGB, yang membutuhkan sumber daya sangat besar untuk resolusi tinggi.[14, 20] Sebaliknya, Stable Diffusion menggunakan ruang laten sebagai proksi untuk merepresentasikan fitur global dan struktural citra.[14, 21] Namun, penelitian terbaru menunjukkan bahwa ketergantungan pada ruang laten resolusi rendah ini menyebabkan munculnya anomali pada tingkat tekstur mikro.[17, 18]
+Dimensi Analisis
+Karakteristik Citra Alami
+Karakteristik Stable Diffusion
+Distribusi Piksel
+Beragam, tidak seimbang, dan dipengaruhi noise sensor [22]
+Lebih datar, cenderung simetris karena berasal dari noise Gaussian [22, 23]
+Domain Frekuensi
+Memiliki transisi kontras tajam (spike frekuensi tinggi) [22]
+Transisi lebih halus, menunjukkan pola spektral akibat upsampling VAE [22, 24]
+Konsistensi Semantik
+Mematuhi hukum fisika, cahaya, dan anatomi biologis secara alami [25, 26]
+Sering terjadi kegagalan dalam detail kecil (tangan, bayangan, arah cahaya) [27, 28]
+Ketergantungan Manifold
+Berada di luar manifold generatif (out-of-distribution) [1]
+Terletak sangat dekat dengan manifold yang dipelajari model [1]
+Keberadaan artefak ini memberikan peluang bagi pengembangan metrik NR-IQA. Sebagai contoh, hipotesis mengenai kehilangan detail frekuensi tinggi dalam proses post-training LDM mendorong pengembangan metode yang menambahkan pengawasan (supervision) pada ruang piksel selama pelatihan model generatif untuk mengurangi visual flaws.[18, 19] Bagi peneliti IQA, ini berarti metrik yang ideal harus mampu mengekstrak fitur dari kedua ruang tersebut secara simultan untuk mendeteksi inkonsistensi yang ditinggalkan oleh proses dekompresi laten.[17, 29]
+Keterbatasan Metrik IQA Tradisional dan Kebutuhan akan Paradigma Baru
+Metrik No-Reference klasik seperti NIQE (Natural Image Quality Evaluator) dan BRISQUE (Blind/Referenceless Image Spatial Quality Evaluator) telah menjadi standar industri selama bertahun-tahun dalam menilai kualitas foto digital.[30, 31] Landasan teoretis mereka adalah Natural Scene Statistics (NSS), yang memodelkan koefisien luminansi citra menggunakan distribusi Gaussian yang digeneralisasi (GGD).[31, 32] Namun, efektivitas metrik ini sangat terbatas ketika diterapkan pada citra hasil Stable Diffusion karena beberapa alasan fundamental yang berkaitan dengan cara kecerdasan buatan memahami keaslian visual.[8, 9, 10]
+Kegagalan Model Statistik dalam Mendeteksi Anomali AI
+Penilaian naturalness melalui BRISQUE sangat bergantung pada ukuran kontras lokal. Masalahnya, citra AIGC seringkali memiliki area yang sangat seragam dan tekstur yang terlalu halus, yang dalam perspektif BRISQUE dianggap sebagai citra berkualitas tinggi (bebas noise).[9, 10] Padahal, bagi persepsi manusia, kehalusan yang berlebihan tersebut justru menciptakan kesan waxy atau "plastik" yang tidak alami.[28] Demikian pula, NIQE mengukur deviasi citra uji terhadap korpus citra alami tanpa referensi skor manusia.[30] Karena NIQE tidak dilatih pada anomali spesifik AI, metrik ini seringkali gagal mengenali kesalahan anatomi atau pencahayaan yang tidak konsisten sebagai bentuk degradasi kualitas.[9, 10]
+Studi komparatif menunjukkan bahwa korelasi antara skor NIQE/BRISQUE dengan penilaian subjektif manusia (MOS) pada dataset AIGC sangat rendah, seringkali di bawah 0.4 dalam koefisien korelasi Spearman (SROCC).[8, 9, 33] Hal ini membuktikan bahwa metrik yang hanya mengandalkan fitur statistik tingkat rendah tidak lagi memadai untuk membedakan antara citra nyata dan citra generatif yang canggih.[9, 24] Diperlukan sebuah paradigma penilaian baru yang tidak hanya melihat "keindahan" teknis piksel, tetapi juga "kebenaran" semantik dan struktural dari apa yang ditampilkan.[9, 34]
+Integrasi Model Multimodal Lanjut: Gemini dan GPT sebagai Tolok Ukur Baru
+Salah satu inovasi paling signifikan dalam penelitian IQA saat ini adalah penggunaan model multimodal skala besar sebagai juri atau pembanding dalam menilai kualitas dan naturalness citra.[35, 36, 37] Model-model seperti Gemini 2.5 Flash Image (Nano Banana) dan GPT Image 1.5 telah dilatih pada miliaran pasangan citra-teks, memberikan mereka pemahaman kontekstual yang jauh melampaui algoritma IQA tradisional.[13, 38, 39, 40]
+Kapabilitas Visi-Bahasa Gemini Nano Banana
+"Nano Banana" merupakan nama sandi yang kini secara resmi dikenal sebagai Gemini 2.5 Flash Image.[11, 41] Model ini menonjol karena kemampuannya dalam melakukan penalaran visual yang mendalam, tidak sekadar mengenali objek.[13, 42, 43] Dalam konteks penilaian kualitas citra, Gemini memiliki keunggulan dalam mendeteksi pelanggaran hukum fisika dan inkonsistensi bayangan yang sering menjadi ciri khas Stable Diffusion.[38, 39]
+Varian Model
+Fokus Utama dan Keunggulan
+Kapabilitas Khusus IQA
+Gemini 2.5 Flash (Nano Banana)
+Kecepatan dan efisiensi tinggi, dioptimalkan untuk tugas batch [11, 44, 45]
+Deteksi inkonsistensi karakter, pemahaman konteks adegan [11, 46, 47]
+Gemini 3 Pro (Nano Banana Pro)
+Penalaran tingkat lanjut ("Thinking"), resolusi hingga 4K [39, 43, 45, 48]
+Penilaian detail mikroskopis (pori kulit, tekstur kain), render teks akurat [39, 47, 49]
+GPT Image 1.5
+Generasi native multimodal, integrasi neural tunggal [12, 50]
+Estetika fotografi komersial, kepatuhan instruksi komposisi yang ketat [12, 51, 52]
+GPT-4o / GPT-4V
+Penalaran inferensial ringkas, pemrosesan dokumen [53, 54, 55, 56]
+Analisis abstrak, deteksi anomali pada gambar tabel atau teknis [53, 55, 57]
+Hasil pengujian pada platform LMArena menunjukkan bahwa GPT Image 1.5 saat ini memimpin dalam hal preferensi pengguna untuk generasi teks-ke-citra dengan skor 1277, namun Gemini 3 Pro (Nano Banana Pro) seringkali dianggap lebih unggul dalam hal realisme "candid" dan keakuratan detail spasial.[52, 58] Bagi peneliti Tugas Akhir, model-model ini dapat digunakan sebagai gold standard untuk memberikan anotasi kualitatif yang kemudian dikonversi menjadi metrik numerik.[59, 60, 61]
+Metodologi Ekstraksi Skor Naturalness dari LMM
+Untuk mengintegrasikan Gemini atau GPT sebagai pembanding dalam penelitian IQA, diperlukan teknik ekstraksi data yang sistematis guna mendapatkan skor kuantitatif dari output model yang bersifat linguistik.[59, 60, 62] Terdapat tiga jalur utama yang dapat ditempuh:
+1. Analisis Log-Probabilities (Logprobs): Peneliti dapat mengakses probabilitas model dalam memilih token tertentu.[63, 64, 65] Dengan memberikan prompt klasifikasi (misalnya "Apakah gambar ini nyata atau buatan AI?"), nilai logprob dari token "nyata" dapat digunakan sebagai metrik naturalness yang kontinu.[63, 65] Nilai logprob yang mendekati nol menunjukkan kepercayaan diri model yang tinggi, sementara nilai yang sangat negatif menunjukkan ketidakpastian.[63, 64, 66]
+2. Framework Soft Labeling: Metode ini mengonversi penilaian deskriptif menjadi distribusi probabilitas di atas level kualitas yang telah ditentukan (misalnya: Bad, Poor, Fair, Good, Excellent).[59, 62] Skor akhir dihitung menggunakan rata-rata tertimbang dari probabilitas ini, yang terbukti memberikan korelasi lebih baik dengan persepsi manusia dibandingkan dengan regresi skalar langsung.[59, 62]
+3. Structured Response melalui Prompt Engineering: Menginstruksikan model untuk bertindak sebagai pakar IQA dan menghasilkan output dalam format JSON yang berisi skor numerik pada berbagai dimensi kualitas.[60, 67, 68] Teknik ini memungkinkan peneliti untuk mengumpulkan data penilaian multi-aspek (misalnya ketajaman, kontras, anatomi, pencahayaan) secara otomatis untuk ribuan citra.[60, 69, 70]
+Taksonomi Artefak Visual Stable Diffusion sebagai Target Metrik IQA
+Pengembangan metrik NR-IQA yang efektif harus menargetkan kegagalan spesifik dari model difusi.[2, 26, 71] Meskipun fotorealisme telah meningkat, jejak digital tetap ada dan dapat diklasifikasikan ke dalam beberapa dimensi utama yang harus mampu ditangkap oleh metrik yang dikembangkan.[26, 28]
+Implausibilitas Anatomis dan Biologis
+Ini adalah area di mana Stable Diffusion paling sering menunjukkan kelemahannya, terutama dalam hal rendering tangan, jari, dan proporsi tubuh manusia.[26, 28] Metrik IQA modern seperti AGHI-Assessor mulai mengintegrasikan fitur manusia yang spesifik domain untuk mendeteksi distorsi pada bagian tubuh tertentu.[72] Kesalahan seperti jumlah jari yang tidak tepat, sendi yang tidak wajar, atau tekstur mata yang "mati" adalah target utama untuk penilaian naturalness.[28, 72, 73]
+Inkonsistensi Fisika dan Cahaya
+Model generatif seringkali gagal mempertahankan konsistensi global dalam hal pencahayaan.[25, 26] Jejak yang dapat dideteksi meliputi bayangan yang jatuh ke arah yang salah dibandingkan dengan sumber cahaya utama, atau objek yang memiliki suhu warna yang sangat berbeda dari lingkungan sekitarnya.[25, 26, 27] Penelitian menunjukkan bahwa meskipun LMM dapat mendeteksi inkonsistensi ini, sensitivitas mereka masih di bawah pengamat manusia terlatih, yang menunjukkan adanya ruang untuk perbaikan metrik melalui integrasi fitur visi-bahasa.[25, 27]
+Jejak Spektral dalam Domain Frekuensi
+Pada level piksel, Stable Diffusion meninggalkan jejak spektral yang unik akibat operasi matematis dalam ruang laten.[22, 24, 74] Penggunaan Fast Fourier Transform (FFT) dapat mengungkap anomali pada pita frekuensi tertentu yang tidak ditemukan pada citra alami.[24, 74, 75] Pola magnitudo dan fase dalam spektrum Fourier citra AI cenderung menunjukkan regularitas yang terlalu tinggi atau pola checkerboard yang halus, yang merupakan efek samping dari proses upsampling pada dekoder VAE.[22, 24]
+Framework FUSE: Menyatukan Cues Spektral dan Semantik
+Strategi yang sangat kuat untuk penelitian metrik NR-IQA adalah mengadopsi atau memodifikasi framework FUSE (Unifying Spectral and Semantic Cues).[74, 76] Framework ini didasarkan pada pemikiran bahwa deteksi AIGC tidak bisa hanya mengandalkan satu jenis fitur saja.[74, 75]
+Mekanisme kerja FUSE melibatkan dua cabang ekstraksi fitur utama:
+• Cabang Spektral: Menggunakan FFT untuk mendapatkan representasi frekuensi citra, menangkap artefak tingkat rendah yang seringkali tersembunyi dari pandangan mata.[74, 75]
+• Cabang Semantik: Memanfaatkan encoder dari model CLIP (biasanya ViT-B/32) untuk menangkap struktur tingkat tinggi dan konteks global.[74, 75] Model CLIP sangat efektif karena telah dilatih pada dataset visi-bahasa yang masif, memungkinkannya mengenali ketidakkonsistenan bentuk objek dan komposisi adegan.[74, 75]
+Fitur dari kedua cabang ini kemudian digabungkan ke dalam satu representasi bersama (joint representation) untuk klasifikasi atau regresi skor kualitas.[74, 75] Pengujian menunjukkan bahwa model hibrida ini memiliki ketahanan (robustness) yang jauh lebih tinggi terhadap manipulasi post-processing seperti kompresi JPEG atau penambahan noise dibandingkan detektor yang hanya mengandalkan fitur piksel.[1, 6, 75, 77]
+Dataset Pengujian
+Akurasi FUSE (Stage 1)
+Akurasi Detektor Tradisional (CNN-DCT)
+GenImage
+91.36%
+~82% [75]
+Chameleon
+State-of-the-Art
+Rendah (Gagal pada resolusi tinggi) [74, 76]
+DiTFake (SD v3, Flux)
+88.71% (Mean All)
+Terbatas (Gagal generalisasi cross-model) [74, 75]
+Implementasi Metrik PELA dan Peran Prompt Engineering yang Terstruktur
+Metode PELA (Prompt-Enhanced Low-Rank Adaptation) menawarkan pendekatan yang sangat relevan bagi peneliti yang tertarik menggunakan VLM sebagai pembanding.[78] PELA merevolusi cara penilaian kualitas citra dengan mengubah tugas regresi "black box" menjadi masalah "quantitative alignment based on language scale".[78]
+Hierarchical Prompt Engineering (HPE)
+Dalam PELA, peneliti tidak menggunakan prompt sederhana seperti "foto bagus" atau "foto jelek".[78] Sebaliknya, digunakan Hierarchical Prompt Engineering yang membangun serangkaian template teks bertingkat untuk menilai dimensi kualitas yang berbeda secara spesifik.[78] Sebagai contoh, untuk menilai naturalness, prompt dapat disusun secara hierarkis mulai dari aspek teknis (kejelasan tekstur) hingga aspek estetika dan kelogisan semantik.[78]
+Task-Differentiated Low-Rank Adaptation (LoRA)
+Keunggulan lain dari pendekatan ini adalah penggunaan LoRA untuk melakukan fine-tuning model dasar (seperti CLIP) secara efisien.[78] Peneliti dapat menggunakan rank (r) yang berbeda untuk sub-tugas yang berbeda:
+• Perception Expert: Menggunakan rank yang lebih tinggi (misalnya r=28) untuk menangkap perbedaan visual yang sangat halus dan preferensi manusia.[78]
+• Alignment Expert: Menggunakan rank yang lebih rendah (misalnya r=8) untuk mencegah overfitting pada ruang fitur dimensi tinggi dan memastikan generalisasi semantik yang baik.[78]
+Hasil eksperimen pada dataset AGIQA-3K menunjukkan bahwa integrasi HPE dan LoRA memungkinkan model mencapai korelasi yang sangat tinggi dengan penilaian manusia, melampaui metrik-metrik yang sebelumnya dianggap terbaik di kelasnya.[78, 79]
+Benchmarking dan Dataset untuk Validasi Metrik IQA-Stable Diffusion
+Validasi metrik yang dikembangkan memerlukan pengujian pada dataset skala besar yang memiliki label Mean Opinion Score (MOS) yang valid secara ilmiah.[78, 80] Beberapa dataset kunci yang harus dipertimbangkan dalam Tugas Akhir ini meliputi:
+1. AGIQA-3K: Dataset paling komprehensif untuk penilaian kualitas citra AI, mencakup 2,982 citra dari 6 model generatif yang berbeda (termasuk Stable Diffusion dan SDXL).[81] Dataset ini memberikan dua dimensi penilaian: kualitas persepsi (perceptual quality) dan penyelarasan teks-ke-citra (alignment).[81, 82]
+2. AIGCIQA2023: Berisi 2,400 citra yang dievaluasi dari tiga perspektif utama: kualitas visual, otentisitas (realisme), dan korespondensi dengan prompt.[80, 83, 84] Dataset ini sangat berguna untuk menguji kemampuan metrik dalam mendeteksi "naturalness" karena adanya dimensi otentisitas yang eksplisit.[80, 83]
+3. GenImage dan WildFake: Dataset ini sangat krusial untuk melatih detektor orisinalitas.[74, 75, 85] GenImage menyediakan jutaan pasang citra nyata dan AI, sementara WildFake menawarkan dataset hierarkis yang mencakup berbagai keluarga generator, sangat ideal untuk menguji kemampuan generalisasi metrik terhadap model yang belum pernah dilihat sebelumnya.[75, 76, 85]
+Dataset
+Karakteristik Utama
+Kegunaan dalam Penelitian IQA
+AGIQA-3K
+Skor MOS 0-7, multi-model (SD, DALLE2, MJ) [81]
+Validasi korelasi metrik dengan persepsi manusia [78, 81]
+AIGCIQA2023
+Fokus pada kualitas, otentisitas, korespondensi [80, 83]
+Mengukur kemampuan deteksi naturalness citra AI [79, 80]
+BIQ2021
+12,000 citra dengan distorsi otentik, 30 observer per citra [86]
+Baseline perbandingan dengan citra nyata yang terdistorsi [86]
+DiffusionDB
+14 juta pasang prompt-citra Stable Diffusion [87, 88]
+Sumber data masif untuk pre-training model deteksi [87, 88]
+Penelitian menunjukkan bahwa model yang dilatih pada dataset hibrida (menggabungkan citra alami dan generatif) cenderung memiliki performa yang lebih stabil dan tidak mudah tertipu oleh manipulasi sederhana.[6, 75, 89]
+Dinamika Rekonstruksi: Pendekatan Inovatif Deteksi Melalui Model Difusi
+Selain menggunakan VLM eksternal, peneliti dapat memanfaatkan properti intrinsik dari model difusi itu sendiri untuk menilai orisinalitas suatu citra.[1] Konsep ini didasarkan pada dinamika rekonstruksi atau yang disebut sebagai "diffusion snap-back".[1]
+Prinsip kerjanya adalah sebagai berikut: Citra uji diberikan noise tambahan dengan kekuatan yang bervariasi, kemudian dimasukkan kembali ke dalam model difusi (misalnya Stable Diffusion v1.5) untuk direkonstruksi.[1] Evolusi metrik rekonstruksi seperti LPIPS, SSIM, dan PSNR diamati selama proses ini.[1] Citra yang benar-benar dihasilkan oleh kecerdasan buatan akan menunjukkan perilaku rekonstruksi yang lebih stabil dan halus karena citra tersebut "cocok" dengan manifold data yang dipelajari oleh model tersebut.[1] Sebaliknya, citra nyata yang memiliki kompleksitas alami yang tidak dapat direplikasi sempurna oleh model akan mengalami degradasi kualitas persepsual yang sangat tajam saat noise ditambahkan.[1]
+Metode ini menawarkan keunggulan unik karena tidak memerlukan pelatihan klasifikasi yang intensif, melainkan menggunakan model generatif yang sudah ada sebagai "forensic sensor".[1] Ini bisa menjadi pembanding yang sangat menarik bagi analisis yang dilakukan oleh Gemini atau GPT Image dalam penelitian Tugas Akhir tersebut.
+Pertimbangan Praktis dalam Integrasi Model Gemini Nano dan GPT Image
+Dalam mengimplementasikan analisis menggunakan model mutakhir, terdapat beberapa aspek teknis dan operasional yang perlu diperhatikan agar penelitian tetap efisien dan valid secara metodologis.
+Optimasi Sumber Daya dan Biaya Komputasi
+Penggunaan API komersial untuk mengevaluasi ribuan citra dapat menghabiskan biaya yang signifikan.[12, 49, 90, 91] Sebagai alternatif, Gemini Nano yang dirancang untuk operasi on-device menawarkan efisiensi tinggi dengan tetap mempertahankan akurasi yang kompetitif (85-95% dari model skala penuh).[40, 92, 93] Peneliti dapat memanfaatkan ML Kit GenAI API untuk mengintegrasikan kapabilitas Gemini Nano ke dalam alur kerja evaluasi citra secara lokal, yang juga memberikan perlindungan privasi data yang lebih baik.[92, 94]
+Tier Model
+Biaya per 1M Token Input
+Biaya per Citra
+Catatan Penggunaan
+Gemini Flash
+$0.30 [40]
+$0.039 [40]
+Efisien untuk pemrosesan volume tinggi [40]
+Gemini 3 Pro
+$4.00 [90]
+N/A
+Akurasi tertinggi, penalaran kompleks [13, 90]
+GPT Image 1.5
+$5.00 [90]
+0.009−0.133 [52]
+Tier kualitas bervariasi (Low/Medium/High) [52]
+Gemini Nano
+Gratis (On-device)
+Gratis
+Kapasitas terbatas pada memori perangkat [40, 92, 93]
+Penanganan Halusinasi dan Bias Model
+Penting untuk diingat bahwa LMM seperti Gemini dan GPT-4V bukanlah sistem yang sempurna dan rentan terhadap fenomena halusinasi.[95, 96, 97] Dalam beberapa kasus, model mungkin memberikan skor naturalness yang tinggi pada citra AI hanya karena komposisi artistiknya yang menarik, mengabaikan artefak teknis yang nyata.[95, 98] Oleh karena itu, dalam penelitian ini, penilaian dari LMM sebaiknya tidak digunakan sebagai satu-satunya kebenaran (ground truth), melainkan sebagai salah satu dimensi dalam ensemble metrik yang juga mencakup fitur statistik piksel dan cues spektral.[1, 59, 74, 99]
+Kesimpulan dan Rekomendasi Pengembangan Metrik NR-IQA
+Berdasarkan tinjauan mendalam terhadap literatur dan data terkini tahun 2024-2025, pengembangan metrik NR-IQA untuk deteksi Stable Diffusion telah bergeser dari model statistik murni menuju sistem intelijen visi yang komprehensif. Penggunaan model seperti Gemini Nano Banana dan GPT Image bukan sekadar tren, melainkan kebutuhan teknis untuk menjembatani kesenjangan antara analisis piksel dan persepsi manusia.[13, 38, 39, 43]
+Beberapa langkah strategis yang direkomendasikan untuk pelaksanaan Tugas Akhir ini meliputi:
+1. Penerapan Arsitektur Hibrida: Bangun metrik yang mengekstraksi jejak sintesis dari domain frekuensi (menggunakan FFT) dan anomali struktural dari domain semantik (menggunakan VLM adapter atau model CLIP yang di-fine-tune dengan LoRA).[74, 75, 78, 99]
+2. Pemanfaatan Prompt Engineering Hierarkis: Gunakan teknik HPE untuk membimbing model multimodal dalam memberikan penilaian yang objektif dan terperinci, mengurangi risiko bias estetik yang dapat mengaburkan deteksi artefak AI.[78]
+3. Integrasi Dinamika Difusi sebagai Validasi Internal: Gunakan metode diffusion snap-back untuk memvalidasi temuan dari model multimodal; jika kedua pendekatan (VLM judge dan rekonstruksi difusi) memberikan indikasi yang sama, maka tingkat kepercayaan terhadap penilaian naturalness citra tersebut akan sangat tinggi.[1]
+4. Uji Generalisasi di Berbagai Generator: Pastikan metrik diuji pada citra dari berbagai versi Stable Diffusion (v1.5, XL, v3.0) serta model pesaing seperti Flux dan Midjourney untuk memastikan metrik tidak hanya overfitting pada karakteristik satu model tertentu.[4, 75, 76, 81]
+Melalui integrasi cerdas antara teknik pemrosesan sinyal tradisional dan kapabilitas penalaran visual dari model multimodal lanjut, pengembangan metrik NR-IQA dalam penelitian ini memiliki potensi besar untuk memberikan solusi yang robust terhadap tantangan otentisitas digital di masa depan.[3, 4, 5] Dengan menjadikan Gemini Nano Banana dan GPT Image sebagai mitra analisis, sistem penilaian yang dihasilkan tidak hanya akan memiliki akurasi teknis yang tinggi, tetapi juga keselarasan yang mendalam dengan cara manusia mempersepsikan kebenaran visual.[13, 38, 39, 78]
+--------------------------------------------------------------------------------
+1. Detecting AI-Generated Images via Diffusion Snap-Back Reconstruction: A Forensic Approach - arXiv, https://arxiv.org/html/2511.00352v1
+2. How to Distinguish AI-Generated Images from Authentic Photographs - Utrecht University, https://research-portal.uu.nl/en/publications/how-to-distinguish-ai-generated-images-from-authentic-photographs/
+3. Intersectional analysis of visual generative AI: the case of stable diffusion - PMC, https://pmc.ncbi.nlm.nih.gov/articles/PMC12390871/
+4. Methods and Trends in Detecting AI-Generated Images: A Comprehensive Review - arXiv, https://arxiv.org/html/2502.15176v2
+5. (PDF) Beyond Semantic Features: Pixel-level Mapping for Generalized AI-Generated Image Detection - ResearchGate, https://www.researchgate.net/publication/398936809_Beyond_Semantic_Features_Pixel-level_Mapping_for_Generalized_AI-Generated_Image_Detection
+6. A quality assessment algorithm for no-reference images based on transfer learning - NIH, https://pmc.ncbi.nlm.nih.gov/articles/PMC11888849/
+7. No-Reference Image Quality Assessment Using the Statistics of Global and Local Image Features - MDPI, https://www.mdpi.com/2079-9292/12/7/1615
+8. Untitled, https://eu-opensci.org/index.php/ejai/article/view/1070#:~:text=The%20primary%20limitation%20of%20existing,deviate%20from%20conventional%20statistical%20distributions.
+9. Evaluating Non-Reference Image Quality Metrics for AI-Generated Images: A Novel Approach | European Journal of Artificial Intelligence and Machine Learning, https://eu-opensci.org/index.php/ejai/article/view/1070
+10. Evaluating Non-Reference Image Quality Metrics for AI-Generated Images, https://www.ej-ai.ejece.org/index.php/ejai/article/download/70/111
+11. Nano-Banana (Gemini 2.5 Flash Image): the AI model from Google that is surprising creatives - Human Academy - The studio that teaches you about AI with the most updated tools in the market, https://www.humanacademy.ai/en/blog/nano-banana-has-arrived
+12. ChatGPT Images: The Complete Guide to OpenAI's Revolutionary GPT Image 1.5 Model, https://almcorp.com/blog/chat-gpt-image-1-5-complete-guide/
+13. Gemini 3 - Google DeepMind, https://deepmind.google/models/gemini/
+14. What are latent diffusion models and how do they differ from pixel-space diffusion? - Milvus, https://milvus.io/ai-quick-reference/what-are-latent-diffusion-models-and-how-do-they-differ-from-pixelspace-diffusion
+15. Stable Diffusion - Wikipedia, https://en.wikipedia.org/wiki/Stable_Diffusion
+16. Stable Diffusion: Theory and Applications | by Dhruba Pujary | CJ Express Tech (TILDI), https://medium.com/cj-express-tech-tildi/stable-diffusion-theory-and-application-a0f98881cb03
+17. Encoded image latent space analysis - SPIE Digital Library, https://www.spiedigitallibrary.org/conference-proceedings-of-spie/13459/1345906/Encoded-image-latent-space-analysis/10.1117/12.3053513.full
+18. Pixel-Space Post-Training of Latent Diffusion Models - Felix Juefei-Xu, https://xujuefei.com/felix_arxiv24_pixel.pdf
+19. Pixel-Space Post-Training of Latent-Diffusion Models - OpenReview, https://openreview.net/forum?id=F7yPR6XhFR
+20. Show-1: Marrying Pixel and Latent Diffusion Models for Text-to-Video Generation - arXiv, https://arxiv.org/html/2309.15818v3
+21. Stable Diffusion: A Bridge Between Idea and Visual Representation - ATI Project, https://atiproject.com/en/current-topics/stable-diffusion-for-idea-and-visual-representation/
+22. difference between real image and ai generated image : r/interesting - Reddit, https://www.reddit.com/r/interesting/comments/1jod315/difference_between_real_image_and_ai_generated/
+23. xl0/latent-tools: Visualize and manipulate the latent space in ComfyUI - GitHub, https://github.com/xl0/latent-tools
+24. SCADET: A detection framework for AI-generated artwork integrating dynamic frequency attention and contrastive spectral analysis - Research journals - PLOS, https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0336328
+25. A comparison of image naturalness perception between humans and image generative models | JOV | ARVO Journals, https://jov.arvojournals.org/article.aspx?articleid=2809861
+26. Characterizing Photorealism and Artifacts in Diffusion Model-Generated Images - Matt Groh, https://mattgroh.com/pdfs/2502.11989v1.pdf
+27. Characterizing Photorealism and Artifacts in Diffusion Model-Generated Images | Request PDF - ResearchGate, https://www.researchgate.net/publication/391252627_Characterizing_Photorealism_and_Artifacts_in_Diffusion_Model-Generated_Images
+28. Characterizing Photorealism and Artifacts in Diffusion Model-Generated Images - arXiv, https://arxiv.org/html/2502.11989v1
+29. Remote Sensing Semantic Segmentation Quality Assessment based on Vision Language Model - arXiv, https://arxiv.org/html/2502.13990v1
+30. Making a 'Completely Blind' Image Quality Analyzer, http://live.ece.utexas.edu/research/Quality/niqe_spl.pdf
+31. No-Reference Quality Assessment - Laboratory for Image and Video Engineering - The University of Texas at Austin, http://live.ece.utexas.edu/research/Quality/nrqa.htm
+32. Train and Use No-Reference Quality Assessment Model - MATLAB & Simulink - MathWorks, https://www.mathworks.com/help/images/train-and-use-a-no-reference-quality-assessment-model.html
+33. Image Quality Assessment for Embodied AI - arXiv, https://arxiv.org/html/2505.16815
+34. A Survey on Quality Metrics for Text-to-Image Generation - arXiv, https://arxiv.org/html/2403.11821v5
+35. Quality Assessment for AI Generated Images with Instruction Tuning - arXiv, https://arxiv.org/html/2405.07346v2
+36. AgenticIQA: An Agentic Framework for Adaptive and Interpretable Image Quality Assessment - arXiv, https://arxiv.org/html/2509.26006v1
+37. SPoRC-VIST: A Benchmark for Evaluating Generative Natural Narrative in Vision-Language Models - arXiv, https://arxiv.org/html/2601.01062v1
+38. AI Image Generation Models Compared: Qwen, GPT-4 Vision, Seadream, Nano Banana, https://www.flowhunt.io/blog/ai-image-generation-models-compared/
+39. Nano Banana Pro: Full Report and Review of the Google's Gemini 3 AI Image Generation Engine + Comparison with Midjourney v6 - Data Studios, https://www.datastudios.org/post/nano-banana-pro-full-report-and-review-of-the-google-s-gemini-3-ai-image-generation-engine-compar
+40. Gemini AI Miniature: Complete Guide to Nano, Flash & 2.5 Models (2025), https://www.cursor-ide.com/blog/gemini-ai-miniature
+41. Nano Banana - Wikipedia, https://en.wikipedia.org/wiki/Nano_Banana
+42. Gemini 2.5 Flash Image (Nano Banana) | Google AI Studio, https://aistudio.google.com/models/gemini-2-5-flash-image
+43. Gemini 3 Pro: the frontier of vision AI - Google Blog, https://blog.google/innovation-and-ai/technology/developers-tools/gemini-3-pro-vision/
+44. Nano Banana 2 Performance Benchmark: Speed, Quality & Consistency - Skywork.ai, https://skywork.ai/blog/ai-image/nano-banana-2-benchmark/
+45. Nano Banana image generation | Gemini API - Google AI for Developers, https://ai.google.dev/gemini-api/docs/image-generation
+46. Use Gemini 2.5 Flash Image (nano banana) on Vertex AI | Google Cloud Blog, https://cloud.google.com/blog/products/ai-machine-learning/gemini-2-5-flash-image-on-vertex-ai
+47. Nano Banana Pro - Gemini AI image generator & photo editor, https://gemini.google/overview/image-generation/
+48. Nano Banana Pro: Google's Gemini 3 Pro Image Model - A Review - Medium, https://medium.com/@leucopsis/nano-banana-pro-googles-gemini-3-pro-image-model-a-review-11cbaee32ee1
+49. Nano Banana Pro is the best AI image generator, with caveats | Max Woolf's Blog, https://minimaxir.com/2025/12/nano-banana-pro/
+50. Introducing OpenAI's GPT-image-1.5 in Microsoft Foundry | Microsoft Community Hub, https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-openai%E2%80%99s-gpt-image-1-5-in-microsoft-foundry/4478139
+51. AI Image Models Tested: Which AI Delivers the Best Product Photos? - AMALYTIX, https://www.amalytix.com/en/knowledge/ai/ai-image-comparison/
+52. GPT-Image-1.5 Guide: ChatGPT Images Benchmark Leader - Digital Marketing Agency, https://www.digitalapplied.com/blog/gpt-image-1-5-chatgpt-images-guide
+53. Evaluating the image recognition capabilities of GPT-4V and Gemini Pro in the Japanese national dental examination - PMC - NIH, https://pmc.ncbi.nlm.nih.gov/articles/PMC11762652/
+54. ​​Gemini vs. GPT-4: Which one is better? | Fireflies.ai, https://fireflies.ai/blog/gemini-vs-gpt-4/
+55. Gemini vs GPT-4V: Vision-Language Model Comparison - Emergent Mind, https://www.emergentmind.com/papers/2312.15011
+56. GPT-4o vs. GPT-Image-1 Comparison - SourceForge, https://sourceforge.net/software/compare/GPT-4o-vs-GPT-Image-1/
+57. Gemini 2.5 Pro and Claude Sonnet 4 Excel at Image Table Data Extraction - 16x Eval, https://eval.16x.engineer/blog/image-table-data-extraction-evaluation-results
+58. LMArena Leaderboard | Compare & Benchmark the Best Frontier AI Models, https://lmarena.ai/leaderboard
+59. Teaching LMMs for Image Quality Scoring and Interpreting - arXiv, https://arxiv.org/html/2503.09197v1
+60. Quantitative and Qualitative Image Analysis Using Nine Different Multimodal Generative AI Vision Models - Gary A. Stafford, https://garystafford.medium.com/evaluating-image-quality-using-nine-different-multimodal-generative-ai-vision-models-a1044de936e3
+61. MIRA: Multimodal Iterative Reasoning Agent for Image Editing - arXiv, https://arxiv.org/html/2511.21087v1
+62. Teaching Large Language Models to Regress Accurate Image Quality Scores Using Score Distribution - arXiv, https://arxiv.org/html/2501.11561v3
+63. Unlock Gemini's reasoning: A step-by-step guide to logprobs on Vertex AI, https://developers.googleblog.com/unlock-gemini-reasoning-with-logprobs-on-vertex-ai/
+64. Estimating LLM classification confidence with log probabilities (logprobs) - Eric Jinks, https://ericjinks.com/blog/2025/logprobs/
+65. Unlocking LLM Confidence Through Logprobs | by Gautam Chutani - Medium, https://gautam75.medium.com/unlocking-llm-confidence-through-logprobs-54b26ed1b48a
+66. Understanding Logprobs: What They Are and How to Use Them - Vellum AI, https://www.vellum.ai/blog/what-are-logprobs-and-how-can-you-use-them
+67. How Gemini in BigQuery helps with data engineering tasks | Google Cloud Blog, https://cloud.google.com/blog/products/data-analytics/how-gemini-in-bigquery-helps-with-data-engineering-tasks
+68. azure-ai-document-processing-samples/samples/python/extraction/vision/document-extraction-gpt-vision.ipynb at main - GitHub, https://github.com/azure-samples/azure-ai-document-processing-samples/blob/main/samples/python/extraction/vision/document-extraction-gpt-vision.ipynb
+69. GPT-4 - Prompt Engineering Guide, https://www.promptingguide.ai/models/gpt-4
+70. Mastering Prompt Engineering with Google Gemini: How to Get the Best Results - Medium, https://medium.com/@michalmikuli/mastering-prompt-engineering-with-google-gemini-how-to-get-the-best-results-52f1743172e9
+71. (PDF) How to Distinguish AI-Generated Images from Authentic Photographs - ResearchGate, https://www.researchgate.net/publication/381404243_How_to_Distinguish_AI-Generated_Images_from_Authentic_Photographs
+72. AGHI-QA: A Subjective-Aligned Dataset and Metric for AI-Generated Human Images - arXiv, https://arxiv.org/html/2504.21308v1
+73. AI Images vs. Real Photographs: Investigating Visual Recognition and Perception - PMC, https://pmc.ncbi.nlm.nih.gov/articles/PMC12641808/
+74. (PDF) FUSE: Unifying Spectral and Semantic Cues for Robust AI ..., https://www.researchgate.net/publication/399135334_FUSE_Unifying_Spectral_and_Semantic_Cues_for_Robust_AI-Generated_Image_Detection
+75. FUSE: Unifying Spectral and Semantic Cues for Robust AI-Generated Image Detection, https://arxiv.org/html/2512.21695v1
+76. [2512.21695] FUSE: Unifying Spectral and Semantic Cues for Robust AI-Generated Image Detection - arXiv, https://www.arxiv.org/abs/2512.21695
+77. Stay-Positive: A Case for Ignoring Real Image Features in Fake Image Detection - arXiv, https://arxiv.org/html/2502.07778v1
+78. Hierarchical Prompt Engineering and Task-Differentiated Low-Rank Adaptation for Artificial Intelligence-Generated Content Image Quality Assessment - MDPI, https://www.mdpi.com/2078-2489/16/11/1006
+79. AIGC Image Quality Assessment via Image-Prompt Correspondence - CVF Open Access, https://openaccess.thecvf.com/content/CVPR2024W/NTIRE/papers/Peng_AIGC_Image_Quality_Assessment_via_Image-Prompt_Correspondence_CVPRW_2024_paper.pdf
+80. arXiv:2307.00211v2 [cs.CV] 15 Jul 2023 - SciSpace, https://scispace.com/pdf/aigciqa2023-a-large-scale-image-quality-assessment-database-2dyc8iaz.pdf
+81. AGIQA-3K: An Open Database for AI-Generated Image Quality Assessment - arXiv, https://arxiv.org/html/2306.04717
+82. AGIQA-3K: An Open Database for AI-Generated Image Quality Assessment - ResearchGate, https://www.researchgate.net/publication/374177572_AGIQA-3K_An_Open_Database_for_AI-Generated_Image_Quality_Assessment
+83. AIGCIQA2023/README.md at main - GitHub, https://github.com/wangjiarui153/AIGCIQA2023/blob/main/README.md
+84. Daily Papers - Hugging Face, https://huggingface.co/papers?q=no-reference
+85. FUSE: Unifying Spectral and Semantic Cues for Robust AI-Generated Image Detection, https://www.semanticscholar.org/paper/FUSE%3A-Unifying-Spectral-and-Semantic-Cues-for-Image-Hossain-Samu/9ac6344f38bdc0ac62f5203c577d4006498cad1f
+86. BIQ2021: A Dataset for Image Quality Assessment - Kaggle, https://www.kaggle.com/datasets/nisarahmedrana/biq2021
+87. poloclub/diffusiondb · Datasets at Hugging Face, https://huggingface.co/datasets/poloclub/diffusiondb
+88. Evaluation & Datasets - State of Open Source AI Book, https://book.premai.io/state-of-open-source-ai/eval-datasets/
+89. Multi-Layer Cross-Modal Prompt Fusion for No-Reference Image Quality Assessment | Request PDF - ResearchGate, https://www.researchgate.net/publication/390501269_Multi-Layer_Cross-Modal_Prompt_Fusion_for_No-Reference_Image_Quality_Assessment
+90. Compare GPT Image 1.5 and Gemini 3 Pro - Appaca AI, https://www.appaca.ai/resources/llm-comparison/gpt-image-1.5-vs-gemini-3-pro
+91. An Evaluation of GPT-4V and Gemini in Online VQA - arXiv, https://arxiv.org/html/2312.10637v1
+92. The latest Gemini Nano with on-device ML Kit GenAI APIs - Android Developers Blog, https://android-developers.googleblog.com/2025/08/the-latest-gemini-nano-with-on-device-ml-kit-genai-apis.html
+93. Gemini: A Family of Highly Capable Multimodal Models - arXiv, https://arxiv.org/pdf/2312.11805
+94. Gemini Nano | AI - Android Developers, https://developer.android.com/ai/gemini-nano
+95. Benchmarking Large Language Models (LLMs i.e. Gemini, ChatGPT4, Mixtral 8x7b, LLaMA-2) in the Medical Domain (medmcqa, medqa, pubmedqa etc.) | by Aaditya ura | Medium, https://medium.com/@aadityaura_26777/benchmarking-large-language-models-llms-i-e-60a460d1c035
+96. GPT-4V(ision) is a Generalist Web Agent, if Grounded - arXiv, https://arxiv.org/html/2401.01614v2
+97. Clarify the semantics of GPT-4o "logprobs" outputs - Emergent Mind, https://www.emergentmind.com/open-problems/gpt-4o-logprobs-semantics-unclear
+98. Text-to-image Diffusion Models in Generative AI: A Survey - arXiv, https://arxiv.org/html/2303.07909v3
+99. CO-SPY: Combining Semantic and Pixel Features to Detect Synthetic Images by AI - CVF Open Access, https://openaccess.thecvf.com/content/CVPR2025/papers/Cheng_CO-SPY_Combining_Semantic_and_Pixel_Features_to_Detect_Synthetic_Images_CVPR_2025_paper.pdf

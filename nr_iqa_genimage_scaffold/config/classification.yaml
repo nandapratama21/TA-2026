@@ -1,0 +1,26 @@
+problem:
+  type: binary_classification
+  target: y_ai
+
+features:
+  fft_mean:
+    enabled: true
+    fields: [fft_mag_mean, fft_phase_mean, fft_phase_cos_mean, fft_phase_sin_mean]
+  clip:
+    enabled: true
+    out_dim: 64
+  nriqa:
+    enabled: true
+    fields: [piqe, brisque, niqe]
+  periodic:
+    enabled: true
+    fields: [periodic_peak_ratio, periodic_topk_energy_ratio, periodic_score]
+
+models:
+  - MLP
+  - SVM
+  - XGBoost
+
+evaluation:
+  metrics: [accuracy, f1, auroc, auprc]
+  eval_split_preferred: val

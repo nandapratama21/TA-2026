@@ -1,0 +1,17 @@
+image_id,path,relative_path,generator,split,class_name,is_real,y_ai
+img_ffc2620c17d11333,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/ai/ai_000.png,BigGAN/train/ai/ai_000.png,BigGAN,train,ai,0,1
+img_badfa860935d9a9f,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/ai/ai_001.png,BigGAN/train/ai/ai_001.png,BigGAN,train,ai,0,1
+img_e316109ff5625880,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/ai/ai_002.png,BigGAN/train/ai/ai_002.png,BigGAN,train,ai,0,1
+img_dd506c3924aa20e5,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/ai/ai_003.png,BigGAN/train/ai/ai_003.png,BigGAN,train,ai,0,1
+img_3746bfe3561eb8bc,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/ai/ai_004.png,BigGAN/train/ai/ai_004.png,BigGAN,train,ai,0,1
+img_3be71546db378164,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/ai/ai_005.png,BigGAN/train/ai/ai_005.png,BigGAN,train,ai,0,1
+img_2e4a76acdc8c7308,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/nature/nature_000.png,BigGAN/train/nature/nature_000.png,BigGAN,train,nature,1,0
+img_79fa2252d8f8caea,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/nature/nature_001.png,BigGAN/train/nature/nature_001.png,BigGAN,train,nature,1,0
+img_9dcf6b8125be50fa,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/nature/nature_002.png,BigGAN/train/nature/nature_002.png,BigGAN,train,nature,1,0
+img_7ae6a55f1708eabb,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/nature/nature_003.png,BigGAN/train/nature/nature_003.png,BigGAN,train,nature,1,0
+img_cb0e0822f70723db,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/nature/nature_004.png,BigGAN/train/nature/nature_004.png,BigGAN,train,nature,1,0
+img_6c2cc3bc6316e8ea,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/train/nature/nature_005.png,BigGAN/train/nature/nature_005.png,BigGAN,train,nature,1,0
+img_cef8ae9cc782e0b9,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/val/ai/ai_000.png,BigGAN/val/ai/ai_000.png,BigGAN,val,ai,0,1
+img_34215c87c546742f,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/val/ai/ai_001.png,BigGAN/val/ai/ai_001.png,BigGAN,val,ai,0,1
+img_c6ceba58bb641719,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/val/nature/nature_000.png,BigGAN/val/nature/nature_000.png,BigGAN,val,nature,1,0
+img_f5ec7a1b2a24d09a,/Users/nandapratama/Documents/Folder belajar/TA/nr_iqa_genimage_scaffold/data/raw/genimage/BigGAN/val/nature/nature_001.png,BigGAN/val/nature/nature_001.png,BigGAN,val,nature,1,0
