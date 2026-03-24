@@ -1,7 +1,9 @@
 """Build a GenImage manifest from extracted folder structure.
 
-Expected structure example:
-  raw_root/<generator>/<split>/<ai|nature>/*.jpg
+Supported structures:
+  1) raw_root/<generator>/<split>/<ai|nature>/*.jpg
+  2) raw_root/<split>/<ai|nature>/*.jpg
+     Example: .../BigGAN/persian_cat/train/ai/*.png
 """
 
 from __future__ import annotations
@@ -29,6 +31,16 @@ def parse_args() -> argparse.Namespace:
         default=Path("data/genimage_manifest.csv"),
         help="Output CSV manifest",
     )
+    parser.add_argument(
+        "--generator",
+        default="",
+        help="Optional generator override (e.g. BigGAN)",
+    )
+    parser.add_argument(
+        "--subset-name",
+        default="",
+        help="Optional subset label (e.g. persian_cat)",
+    )
     return parser.parse_args()
 
 
@@ -37,11 +49,25 @@ def make_image_id(rel_path: str) -> str:
     return f"img_{digest}"
 
 
+def infer_generator(raw_root: Path, override: str) -> str:
+    if override:
+        return override
+    for part in reversed(raw_root.parts):
+        if part.lower() not in {"genimage", "raw", "data", "train", "test", "val"}:
+            return part
+    return "unknown"
+
+
 def main() -> None:
     args = parse_args()
     raw_root = args.raw_root.resolve()
     if not raw_root.exists():
         raise FileNotFoundError(f"Raw root not found: {raw_root}")
+
+    generator_default = infer_generator(raw_root, args.generator)
+    subset_name = args.subset_name or (
+        raw_root.name if raw_root.name.lower() not in {"train", "test", "val"} else ""
+    )
 
     rows = []
     for p in sorted(raw_root.rglob("*")):
@@ -50,13 +76,22 @@ def main() -> None:
 
         rel = p.relative_to(raw_root)
         parts = rel.parts
-        if len(parts) < 4:
-            # Skip files that do not match generator/split/class/image format.
-            continue
 
-        generator = parts[0]
-        split = parts[1].lower()
-        class_name = parts[2].lower()
+        generator = generator_default
+        split = ""
+        class_name = ""
+
+        if len(parts) >= 4 and parts[2].lower() in {"ai", "nature", "real"}:
+            # Structure: <generator>/<split>/<class>/<file>
+            generator = parts[0]
+            split = parts[1].lower()
+            class_name = parts[2].lower()
+        elif len(parts) >= 3 and parts[1].lower() in {"ai", "nature", "real"}:
+            # Structure: <split>/<class>/<file>
+            split = parts[0].lower()
+            class_name = parts[1].lower()
+        else:
+            continue
 
         if class_name not in {"ai", "nature", "real"}:
             continue
@@ -71,6 +106,7 @@ def main() -> None:
                 "path": str(p.resolve()),
                 "relative_path": rel_str,
                 "generator": generator,
+                "subset_name": subset_name,
                 "split": split,
                 "class_name": class_name,
                 "is_real": is_real,
