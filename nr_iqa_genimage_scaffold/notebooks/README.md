@@ -8,6 +8,9 @@
 - `04_persian_cat_fft_clip_baseline.ipynb`: baseline nyata untuk subset BigGAN/Persian cat dengan visualisasi sample, FFT mean, CLIP, merge vector, dan train classifier.
 - `05_persian_cat_fft_xgboost_mlp_baseline.ipynb`: baseline eksperimen awal paling sederhana, hanya `FFT mean` + `XGBoost` pada split 80:20 dari subset train Persian cat.
 - `06_biggan_random5class_fft_xgboost_mlp.ipynb`: eksperimen `multiple classes, single generator` untuk subset BigGAN/train dengan audit class coverage, FFT mean, XGBoost, dan MLP.
+- `07_midjourney_4class_fft_xgboost_mlp.ipynb`: eksperimen `multiple classes, single generator` untuk subset MidJourney/train (4 kelas) dengan FFT mean, XGBoost, dan MLP.
+- `08_biggan_midjourney_common4_fft_xgboost_mlp.ipynb`: eksperimen gabungan `BigGAN + MidJourney` pada 4 class yang sama, dengan FFT mean, XGBoost, dan MLP.
+- `09_biggan_midjourney_common4_fft_clip_xgboost_mlp.ipynb`: eksperimen gabungan `BigGAN + MidJourney` pada 4 class yang sama dengan fitur FFT mean + CLIP, lalu train XGBoost dan MLP.
 
 ## Legacy
 - `full_pipeline_dummy.ipynb`: dummy flow lama (masih disimpan untuk referensi).

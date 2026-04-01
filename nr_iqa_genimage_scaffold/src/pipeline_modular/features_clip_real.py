@@ -59,8 +59,12 @@ def clip_vector_from_image(path: str, backend, torch_mod, out_dim: int) -> np.nd
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
     with torch_mod.no_grad():
-        feats = model.get_image_features(**inputs)
-        feats = feats / feats.norm(dim=-1, keepdim=True)
+        out = model.get_image_features(**inputs)
+        if hasattr(out, "pooler_output"):
+            feats = out.pooler_output
+        else:
+            feats = out
+        feats = feats / feats.norm(p=2, dim=-1, keepdim=True)
     vec = feats.squeeze(0).detach().cpu().numpy().astype(np.float32)
 
     if out_dim < vec.shape[0]:
