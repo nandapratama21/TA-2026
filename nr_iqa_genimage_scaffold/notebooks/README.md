@@ -11,6 +11,8 @@
 - `07_midjourney_4class_fft_xgboost_mlp.ipynb`: eksperimen `multiple classes, single generator` untuk subset MidJourney/train (4 kelas) dengan FFT mean, XGBoost, dan MLP.
 - `08_biggan_midjourney_common4_fft_xgboost_mlp.ipynb`: eksperimen gabungan `BigGAN + MidJourney` pada 4 class yang sama, dengan FFT mean, XGBoost, dan MLP.
 - `09_biggan_midjourney_common4_fft_clip_xgboost_mlp.ipynb`: eksperimen gabungan `BigGAN + MidJourney` pada 4 class yang sama dengan fitur FFT mean + CLIP, lalu train XGBoost dan MLP.
+- `10_biggan_midjourney_common4_clip_xgboost_mlp.ipynb`: eksperimen gabungan `BigGAN + MidJourney` pada 4 class yang sama dengan fitur CLIP only, lalu train XGBoost dan MLP.
+- `11_biggan_midjourney_common4_iqa_xgboost_mlp.ipynb`: eksperimen gabungan `BigGAN + MidJourney` pada 4 class yang sama dengan fitur IQA only (`PIQE`, `BRISQUE`, `NIQE`), lalu train XGBoost dan MLP.
 
 ## Legacy
 - `full_pipeline_dummy.ipynb`: dummy flow lama (masih disimpan untuk referensi).
