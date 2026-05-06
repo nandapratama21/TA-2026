@@ -1,28 +1,22 @@
 project:
   name: nr-iqa-genimage
-  task: regression
+  task: binary_classification
   primary_dataset: genimage
 
 data:
-  manifest_path: data/genimage_manifest.csv
-  quality_labels_path: data/labels_quality.csv
-  image_root: /path/to/images
+  manifest_path: data/genimage_manifest_biggan_midjourney_cat4_train.csv
+  image_root: data/raw/genimage
+  subset_name: biggan_midjourney_cat4_train
 
 model:
-  clip_model: ViT-B/32
+  clip_model: openai/clip-vit-base-patch32
   fusion: concatenate
-  regressor_hidden: [512, 128]
-  loss: huber
 
 features:
-  fft:
-    use_phase: true
-    radial_bins: 64
-    bands: [low, mid, high]
+  fft_mean:
+    fields: [fft_mag_mean, fft_phase_mean, fft_phase_cos_mean, fft_phase_sin_mean]
   clip:
     freeze_backbone: true
-
-semantics_eval:
-  enabled: false
-  provider: gemini
-  mode: manual_subset
+    out_dim: 64
+  nriqa:
+    fields: [piqe, brisque, niqe]

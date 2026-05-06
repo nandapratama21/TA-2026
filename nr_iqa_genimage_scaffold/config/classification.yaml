@@ -1,6 +1,26 @@
 problem:
   type: binary_classification
   target: y_ai
+  labels:
+    nature: 0
+    ai: 1
+
+dataset:
+  name: biggan_midjourney_cat4_train
+  generators: [BigGAN, MidJourney]
+  classes:
+    - index: 281
+      wnid: n02123045
+      label: tabby
+    - index: 283
+      wnid: n02123394
+      label: Persian_cat
+    - index: 284
+      wnid: n02123597
+      label: Siamese_cat
+    - index: 285
+      wnid: n02124075
+      label: Egyptian_cat
 
 features:
   fft_mean:
@@ -8,19 +28,16 @@ features:
     fields: [fft_mag_mean, fft_phase_mean, fft_phase_cos_mean, fft_phase_sin_mean]
   clip:
     enabled: true
+    model: openai/clip-vit-base-patch32
     out_dim: 64
   nriqa:
     enabled: true
     fields: [piqe, brisque, niqe]
-  periodic:
-    enabled: true
-    fields: [periodic_peak_ratio, periodic_topk_energy_ratio, periodic_score]
 
 models:
-  - MLP
-  - SVM
   - XGBoost
+  - MLP
 
 evaluation:
-  metrics: [accuracy, f1, auroc, auprc]
-  eval_split_preferred: val
+  split_protocol: train_holdout_80_20_stratified_generator_label_class
+  metrics: [accuracy, f1, auroc]
