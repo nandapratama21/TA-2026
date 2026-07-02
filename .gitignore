@@ -1,0 +1,18 @@
+.DS_Store
+*Zone.Identifier
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Local notes, LaTeX build/project copy, and non-project references.
+.agents/
+.codex/
+berkas/
+old_bab4_reference/
+skripsi_nanda_zip_work/
+source/
+
+# Large/generated experiment data.
+nr_iqa_genimage_scaffold/data/raw/
+nr_iqa_genimage_scaffold/data/processed/
+nr_iqa_genimage_scaffold/artifacts/
